@@ -28,10 +28,11 @@ driver = webdriver.Chrome(options=options)
 UNSNITISEDCHARS = '\'!?^~`:;{[}]+='
 #endregion
 
-def BootServer(server, session) :
+def BootServer(server, session, ga) :
     driver.get('https://aternos.org/server/')
     driver.add_cookie({'name': 'ATERNOS_SESSION', "value" : session, 'sameSite': 'Lax'})
     driver.add_cookie({'name': 'ATERNOS_SERVER', "value" : server, 'sameSite': 'Lax'})
+    driver.add_cookie({'name': 'ATERNOS_GA', "value" : ga, 'sameSite': 'None'})
 
 @client.event
 async def on_ready():
@@ -46,6 +47,6 @@ async def on_message(message:discord.Message):
     args[0] = args[0][1::]
     print(args)
     if args[0] == 'boot' :
-        BootServer(server= args[1], session= args[2])
+        BootServer(server= args[1], session= args[2], ga= args[3])
 
 client.run(TOKEN)
