@@ -10,6 +10,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 #from discord import SlashCommand
 from discord.ext import commands
+import undetected_chromedriver as uc
 from discord import Color
 
 with open('C:/Users/modib/Documents/kali/py/AternosBOT/config.json') as f:
@@ -24,15 +25,16 @@ client = discord.Client(intents=intents)
 PREFIX = "*"
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 options = Options()
-driver = webdriver.Chrome(options=options)
+options.addArguments("user-data-dir=C:/Users/modib/AppData/Local/Google/Chrome/User Data/Default")
+driver = uc.Chrome(options=options)
 UNSNITISEDCHARS = '\'!?^~`:;{[}]+='
 #endregion
 
-def BootServer(server, session, ga) :
+def BootServer() :
     driver.get('https://aternos.org/server/')
-    driver.add_cookie({'name': 'ATERNOS_SESSION', "value" : session, 'sameSite': 'Lax'})
-    driver.add_cookie({'name': 'ATERNOS_SERVER', "value" : server, 'sameSite': 'Lax'})
-    driver.add_cookie({'name': 'ATERNOS_GA', "value" : ga, 'sameSite': 'None'})
+    #driver.add_cookie({'name': 'ATERNOS_SESSION', "value" : session, 'sameSite': 'Lax'})
+    #driver.add_cookie({'name': 'ATERNOS_SERVER', "value" : server, 'sameSite': 'Lax'})
+    #driver.add_cookie({'name': 'ATERNOS_GA', "value" : ga, 'sameSite': 'None'})
 
 @client.event
 async def on_ready():
@@ -47,6 +49,6 @@ async def on_message(message:discord.Message):
     args[0] = args[0][1::]
     print(args)
     if args[0] == 'boot' :
-        BootServer(server= args[1], session= args[2], ga= args[3])
+        BootServer()
 
 client.run(TOKEN)
