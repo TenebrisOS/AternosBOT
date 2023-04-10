@@ -36,6 +36,7 @@ def GetHelp() :
     mbd.add_field(name = "Boot the server :", value = '`<prefix>boot`')
     mbd.add_field(name = "Check status :", value = '`<prefix>check-status`')
     mbd.add_field(name = "Stop server :", value = '`<prefix>stop`')
+    mbd.add_field(name = "Get Help :", value = '`<prefix>help`')
     return mbd
 
 def StopServer() :
