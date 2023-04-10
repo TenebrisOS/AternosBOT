@@ -5,5 +5,6 @@ This is a simple bot that can boot your aternos bot by using selenium, you have 
 - Boot the server : ``` <prefix>boot ```
 - Check status : ``` <prefix>check-status ```
 - Stop server : ``` <prefix>stop ```
+- Get Help : ``` <prefix>help ```
 ## Credits 
 This project was created by [TenebrisOS](https://github.com/TenebrisOS)
