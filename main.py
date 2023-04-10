@@ -30,8 +30,25 @@ options.add_argument("user-data-dir=C:/Users/modib/AppData/Local/Google/Chrome/U
 driver = uc.Chrome(options=options)
 #endregion
 
+def GetHelp() :
+    mbd = discord.Embed(title="Help", color = Color.red())
+    mbd.add_field(name = "Prefix before every command :", value = '`*`')
+    mbd.add_field(name = "Boot the server :", value = '`<prefix>boot`')
+    mbd.add_field(name = "Check status :", value = '`<prefix>check-status`')
+    mbd.add_field(name = "Stop server :", value = '`<prefix>stop`')
+    return mbd
+
 def StopServer() :
+    val = False
     driver.get('https://aternos.org/server/')
+    try :
+        stopButton = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="stop"]'))
+        stopButton.click()
+        val = True
+        return val
+    except NoSuchElementException :
+        val = False
+        return val
 
 def CheckStatus() :
     driver.get('https://aternos.org/server/')
@@ -41,25 +58,20 @@ def CheckStatus() :
         mbd = discord.Embed(title="Server is running :D", color = Color.green())
         Players = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/section/div[3]/div[4]/div[3]/div[1]/div[1]/div[2]/div[2]'))
         mbd.add_field(name = "Players", value = Players.text)
-    else :
+    elif Status.text == 'Offline' :
         mbd = discord.Embed(title="Server is Offline :(", color = Color.red())
+    else : 
+        mbd = discord.Embed(title="Server is starting :D", color = Color.greyple())
     IPAddress = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="ip"]'))
     mbd.add_field(name = "IPddress", value = IPAddress.text)
     return mbd
 
 def BootServer() :
+    message = ''
     driver.get('https://aternos.org/server/')
     try :
         startButton = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="start"]'))
         startButton.click()
-    except NoSuchElementException :
-        startButton = None
-    if startButton == None :
-        message = 'no'
-        return message
-    else :
-        button = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/div/div/div/main/div/div/a[1]'))
-        button.click()
         time.sleep(1)
         IPAddress = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="ip"]'))
         Software = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="software"]'))
@@ -74,6 +86,11 @@ def BootServer() :
         mbd.add_field(name = "Version", value = Version.text)
         mbd.add_field(name = "Status", value = Status.text)
         return mbd
+
+    except NoSuchElementException :
+        startButton = None
+        message = 'no'
+        return message
 
 @client.event
 async def on_ready():
@@ -97,6 +114,11 @@ async def on_message(message:discord.Message):
     if args[0] == 'stop' :
         await message.channel.send('Stopping Server :)')
         mbd = StopServer()
+        if mbd == True :
+            await message.channel.send('Successfully stopped :D')
+    
+    if args[0] == 'help' :
+        mbd = GetHelp()
         await message.channel.send(embed = mbd)
 
     if args[0] == 'check-status' :
