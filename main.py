@@ -12,6 +12,7 @@ from selenium.webdriver.chrome.options import Options
 from discord.ext import commands
 import undetected_chromedriver as uc
 from discord import Color
+import time
 
 with open('C:/Users/modib/Documents/kali/py/AternosBOT/config.json') as f:
    data = json.load(f)
@@ -25,16 +26,54 @@ client = discord.Client(intents=intents)
 PREFIX = "*"
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 options = Options()
-options.addArguments("user-data-dir=C:/Users/modib/AppData/Local/Google/Chrome/User Data/Default")
+options.add_argument("user-data-dir=C:/Users/modib/AppData/Local/Google/Chrome/User Data/Default")
 driver = uc.Chrome(options=options)
-UNSNITISEDCHARS = '\'!?^~`:;{[}]+='
 #endregion
+
+def StopServer() :
+    driver.get('https://aternos.org/server/')
+
+def CheckStatus() :
+    driver.get('https://aternos.org/server/')
+    mbd = discord.Embed(title="Status", color = Color.red())
+    Status = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/section/div[3]/div[2]/div[1]/div/span[2]/span'))
+    if Status.text == 'Online' :
+        mbd = discord.Embed(title="Server is running :D", color = Color.green())
+        Players = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/section/div[3]/div[4]/div[3]/div[1]/div[1]/div[2]/div[2]'))
+        mbd.add_field(name = "Players", value = Players.text)
+    else :
+        mbd = discord.Embed(title="Server is Offline :(", color = Color.red())
+    IPAddress = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="ip"]'))
+    mbd.add_field(name = "IPddress", value = IPAddress.text)
+    return mbd
 
 def BootServer() :
     driver.get('https://aternos.org/server/')
-    #driver.add_cookie({'name': 'ATERNOS_SESSION', "value" : session, 'sameSite': 'Lax'})
-    #driver.add_cookie({'name': 'ATERNOS_SERVER', "value" : server, 'sameSite': 'Lax'})
-    #driver.add_cookie({'name': 'ATERNOS_GA', "value" : ga, 'sameSite': 'None'})
+    try :
+        startButton = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="start"]'))
+        startButton.click()
+    except NoSuchElementException :
+        startButton = None
+    if startButton == None :
+        message = 'no'
+        return message
+    else :
+        button = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/div/div/div/main/div/div/a[1]'))
+        button.click()
+        time.sleep(1)
+        IPAddress = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="ip"]'))
+        Software = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="software"]'))
+        Version = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="version"]'))
+        Status = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/section/div[3]/div[2]/div[1]/div/span[2]/span'))
+        #driver.add_cookie({'name': 'ATERNOS_SESSION', "value" : session, 'sameSite': 'Lax'})
+        #driver.add_cookie({'name': 'ATERNOS_SERVER', "value" : server, 'sameSite': 'Lax'})
+        #driver.add_cookie({'name': 'ATERNOS_GA', "value" : ga, 'sameSite': 'None'})
+        mbd = discord.Embed(title="Server ", color = Color.dark_purple())
+        mbd.add_field(name = "IPAddress", value = IPAddress.text)
+        mbd.add_field(name = "Software", value = Software.text)
+        mbd.add_field(name = "Version", value = Version.text)
+        mbd.add_field(name = "Status", value = Status.text)
+        return mbd
 
 @client.event
 async def on_ready():
@@ -49,6 +88,20 @@ async def on_message(message:discord.Message):
     args[0] = args[0][1::]
     print(args)
     if args[0] == 'boot' :
-        BootServer()
+        await message.channel.send('Booting Server :D')
+        mbd = BootServer()
+        if mbd == 'no' :
+            await message.channel.send('Server Already running or error :(')
+        else :
+            await message.channel.send(embed = mbd)
+    if args[0] == 'stop' :
+        await message.channel.send('Stopping Server :)')
+        mbd = StopServer()
+        await message.channel.send(embed = mbd)
 
+    if args[0] == 'check-status' :
+        await message.channel.send('Checking Status...')
+        mbd = CheckStatus()
+        await message.channel.send(embed = mbd)
+        
 client.run(TOKEN)
