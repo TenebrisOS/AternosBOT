@@ -10,6 +10,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 #from discord import SlashCommand
 from discord.ext import commands
+from discord import ButtonStyle, ActionRow, Button
 import undetected_chromedriver as uc
 from discord import Color
 import time
@@ -141,19 +142,40 @@ async def on_message(message:discord.Message):
     
     if args[0] == 'restart' :
         await message.channel.send('Restarting Server :)')
-        mbd = StopServer()
-    if mbd == True :
-        await message.channel.send('Server is offline')
-    elif mbd == False :
-        await message.channel.send('Server restarting...')
+        mbd = RestartServer()
+        if mbd == True :
+            await message.channel.send('Server is offline')
+        elif mbd == False :
+            await message.channel.send('Server restarting...')
     
     if args[0] == 'help' :
         mbd = GetHelp()
         await message.channel.send(embed = mbd)
 
     if args[0] == 'check-status' :
+        buttonStop = Button(
+                    style=ButtonStyle.red,
+                    label="Stop",
+                    custom_id= 'stopButton'
+                    )
+        action_row = ActionRow(buttonStop)
         await message.channel.send('Checking Status...')
         mbd = CheckStatus()
-        await message.channel.send(embed = mbd)
+        await message.channel.send(embed= mbd, components= [action_row])
+        interaction = await bot.wait_for("button_click", check = lambda i: i.custom_id == "stopButton")
+        await interaction.send(content = 'Stopping Server :)')
+        mbd = StopServer()
+        if mbd == True :
+            await message.channel.send('Server is already offline')
+        elif mbd == False :
+            await message.channel.send('Server has been shutdawn successfully')
         
+        async def StopResponse(message) :
+            await message.channel.send('Stopping Server :)')
+            mbd = StopServer()
+            if mbd == True :
+                await message.channel.send('Server is already offline')
+            elif mbd == False :
+                await message.channel.send('Server has been shutdawn successfully')
+            
 client.run(TOKEN)
