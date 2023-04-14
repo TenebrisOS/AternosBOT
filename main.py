@@ -39,17 +39,31 @@ def GetHelp() :
     mbd.add_field(name = "Get Help :", value = '`<prefix>help`')
     return mbd
 
+def RestartServer() :
+    val = False
+    driver.get('https://aternos.org/server/')
+    Status = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/section/div[3]/div[2]/div[1]/div/span[2]/span'))
+    if Status.text == 'Online' :
+        restartButton = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="restart"]'))
+        restartButton.click()
+        offline = False
+        return offline
+    elif Status.text == 'Offline' :
+        offline = True
+        return offline
+
 def StopServer() :
     val = False
     driver.get('https://aternos.org/server/')
-    try :
+    Status = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/section/div[3]/div[2]/div[1]/div/span[2]/span'))
+    if Status.text == 'Online' :
         stopButton = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="stop"]'))
         stopButton.click()
-        val = True
-        return val
-    except NoSuchElementException :
-        val = False
-        return val
+        offline = False
+        return offline
+    elif Status.text == 'Offline' :
+        offline = True
+        return offline
 
 def CheckStatus() :
     driver.get('https://aternos.org/server/')
@@ -70,7 +84,11 @@ def CheckStatus() :
 def BootServer() :
     message = ''
     driver.get('https://aternos.org/server/')
-    try :
+    Status = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="read-our-tos"]/main/section/div[3]/div[2]/div[1]/div/span[2]/span'))
+    if Status.text == 'Online' :
+        message = 'no'
+        return message
+    elif Status.text == 'Offline' :
         startButton = WebDriverWait(driver, timeout=10).until(lambda d: d.find_element(By.XPATH, '//*[@id="start"]'))
         startButton.click()
         time.sleep(1)
@@ -87,11 +105,8 @@ def BootServer() :
         mbd.add_field(name = "Version", value = Version.text)
         mbd.add_field(name = "Status", value = Status.text)
         return mbd
-
-    except NoSuchElementException :
-        startButton = None
-        message = 'no'
-        return message
+    else :
+        message = 'error'
 
 @client.event
 async def on_ready():
@@ -109,14 +124,28 @@ async def on_message(message:discord.Message):
         await message.channel.send('Booting Server :D')
         mbd = BootServer()
         if mbd == 'no' :
-            await message.channel.send('Server Already running or error :(')
+            await message.channel.send('Server Already running :)')
+
+        elif mbd == 'error' :
+            await message.channel.send('An error has occured :(, pls contact admin with details, that would help you to get a special role :D, and at the same time help us to improve our bot :D')
         else :
             await message.channel.send(embed = mbd)
+
     if args[0] == 'stop' :
         await message.channel.send('Stopping Server :)')
         mbd = StopServer()
         if mbd == True :
-            await message.channel.send('Successfully stopped :D')
+            await message.channel.send('Server is already offline')
+        elif mbd == False :
+            await message.channel.send('Server has been shutdawn successfully')
+    
+    if args[0] == 'restart' :
+        await message.channel.send('Restarting Server :)')
+        mbd = StopServer()
+    if mbd == True :
+        await message.channel.send('Server is offline')
+    elif mbd == False :
+        await message.channel.send('Server restarting...')
     
     if args[0] == 'help' :
         mbd = GetHelp()
